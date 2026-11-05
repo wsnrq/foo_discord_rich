@@ -139,7 +139,7 @@ BEGIN
     LTEXT           "1-100",IDC_STATIC,155,119,25,8
     LTEXT           "Hidden/Blurred Fallback URL",IDC_STATIC,17,139,95,16
     EDITTEXT        IDC_TEXTBOX_HIDDEN_PLACEHOLDER_URL,120,138,184,13,ES_AUTOHSCROLL
-    GROUPBOX        "Override",IDC_STATIC,7,162,314,72
+    GROUPBOX        "Override",IDC_STATIC,7,162,314,88
     CONTROL         "Override artwork URL",IDC_CHECK_OVERRIDE_ARTWORK_URL,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,176,287,10
     LTEXT           "Artwork override URL",IDC_STATIC,17,194,95,8
@@ -148,6 +148,8 @@ BEGIN
                     IDC_STATIC,17,208,287,8
     LTEXT           "Supports title formatting (e.g. %artist%, %album%).",
                     IDC_STATIC,17,218,287,8
+    LTEXT           "Make sure that with the album and artist name, the URL does not exceed the 256 character limit.",
+                    IDC_STATIC,17,228,287,16
 END
 
 IDD_PREFS_UPLOADER_TAB DIALOGEX 0, 0, 327, 268
