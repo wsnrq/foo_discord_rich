@@ -271,7 +271,15 @@ std::string GetValidatedArtworkOverrideUrl( metadb_handle_ptr metadb )
     }
     else
     {
-        tf->run_simple( playable_location_impl(), nullptr, formattedUrl );
+        if ( tf->requires_metadb_info_() )
+        {
+            return {};
+        }
+
+        playable_location_impl emptyLocation;
+        file_info_impl emptyInfo;
+        titleformat_hook_impl_file_info hook( emptyLocation, &emptyInfo );
+        tf->run( &hook, formattedUrl, &filter );
     }
 
     const auto formattedTrimmed = TrimWhitespace( formattedUrl.c_str() );
