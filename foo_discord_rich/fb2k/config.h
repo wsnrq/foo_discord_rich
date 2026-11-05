@@ -77,6 +77,6 @@ BundledUploaderService GetValidatedBundledUploaderService();
 std::string GetBundledUploaderServiceCliName();
 uint32_t GetValidatedBlurPercent();
 std::string GetValidatedHiddenPlaceholderUrl();
-std::string GetValidatedArtworkOverrideUrl();
+std::string GetValidatedArtworkOverrideUrl( metadb_handle_ptr metadb = metadb_handle_ptr() );
 
 }; // namespace drp::config
