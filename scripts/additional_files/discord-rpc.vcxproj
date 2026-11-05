@@ -47,7 +47,7 @@
     <NMakeBuildCommandLine>cd "$(ProjectDir)"..\
 mkdir build_$(Platform)
 cd build_$(Platform)
-cmake .. -DCMAKE_BUILD_TYPE=$(Configuration) -DCMAKE_INSTALL_PREFIX=..\_result\$(Platform) -DUSE_STATIC_CRT=ON -DCMAKE_C_FLAGS="/Gd" -DCMAKE_CXX_FLAGS="/Gd"
+cmake .. -A Win32 -DCMAKE_BUILD_TYPE=$(Configuration) -DCMAKE_INSTALL_PREFIX=..\_result\$(Platform) -DUSE_STATIC_CRT=ON -DCMAKE_C_FLAGS="/Gd" -DCMAKE_CXX_FLAGS="/Gd"
 cmake --build ..\build_$(Platform) --config $(Configuration) --target install</NMakeBuildCommandLine>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
     <NMakeCleanCommandLine>rmdir /s/q "$(ProjectDir)"..\build_$(Platform)
@@ -57,7 +57,7 @@ rmdir /s/q "$(ProjectDir)"..\_result\$(Platform)</NMakeCleanCommandLine>
     <NMakeBuildCommandLine>cd "$(ProjectDir)"..\
 mkdir build_$(Platform)
 cd build_$(Platform)
-cmake .. -DCMAKE_BUILD_TYPE=$(Configuration) -DCMAKE_INSTALL_PREFIX=..\_result\$(Platform) -DUSE_STATIC_CRT=ON
+cmake .. -A x64 -DCMAKE_BUILD_TYPE=$(Configuration) -DCMAKE_INSTALL_PREFIX=..\_result\$(Platform) -DUSE_STATIC_CRT=ON
 cmake --build ..\build_$(Platform) --config $(Configuration) --target install</NMakeBuildCommandLine>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
     <NMakeCleanCommandLine>rmdir /s/q "$(ProjectDir)"..\build_$(Platform)

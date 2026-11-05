@@ -1,4 +1,4 @@
-﻿#include <stdafx.h>
+#include <stdafx.h>
 
 #include "uploader.h"
 
@@ -6,6 +6,7 @@
 #include <resource.h>
 
 #include <span>
+#include <chrono>
 #include <ctime>
 #include <vector>
 #include <fb2k/artwork_metadb.h>

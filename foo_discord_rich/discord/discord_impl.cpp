@@ -203,7 +203,7 @@ void PresenceModifier::UpdateImage()
         return;
     }
 
-    const auto artworkOverrideUrl = config::GetValidatedArtworkOverrideUrl();
+    const auto artworkOverrideUrl = config::GetValidatedArtworkOverrideUrl( pd->metadb );
     if ( !artworkOverrideUrl.empty() )
     {
         setImageKey( qwr::u8string{ artworkOverrideUrl }, pd );

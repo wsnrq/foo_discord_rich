@@ -100,6 +100,47 @@ public:
 
 service_factory_single_t<UploaderConfigMigrationCallback> g_uploader_config_migration_callback;
 
+void UrlEncode( const char* data, size_t length, pfc::string_receiver& out )
+{
+    static const char hex[] = "0123456789ABCDEF";
+    for ( size_t i = 0; i < length; ++i )
+    {
+        const unsigned char c = static_cast<unsigned char>( data[i] );
+        // RFC 3986 unreserved characters: ALPHA / DIGIT / "-" / "." / "_" / "~"
+        if ( ( c >= 'a' && c <= 'z' ) || ( c >= 'A' && c <= 'Z' ) || ( c >= '0' && c <= '9' ) || c == '-' || c == '_' || c == '.' || c == '~' )
+        {
+            out.add_byte( c );
+        }
+        else
+        {
+            out.add_byte( '%' );
+            out.add_byte( hex[( c >> 4 ) & 0x0F] );
+            out.add_byte( hex[c & 0x0F] );
+        }
+    }
+}
+
+class TitleFormatUrlFilter : public titleformat_text_filter
+{
+public:
+    void write( const GUID& inputType, pfc::string_receiver& out, const char* data, t_size length ) override
+    {
+        if ( length == ~0 )
+        {
+            length = strlen( data );
+        }
+
+        if ( inputType == titleformat_inputtypes::meta )
+        {
+            UrlEncode( data, length, out );
+        }
+        else
+        {
+            out.add_string( data, length );
+        }
+    }
+};
+
 } // namespace
 
 void EnsureUploaderPreferencesMigrated()
@@ -174,7 +215,7 @@ std::string GetValidatedHiddenPlaceholderUrl()
     return {};
 }
 
-std::string GetValidatedArtworkOverrideUrl()
+std::string GetValidatedArtworkOverrideUrl( metadb_handle_ptr metadb )
 {
     static std::string lastLoggedInvalidValue;
 
@@ -191,21 +232,71 @@ std::string GetValidatedArtworkOverrideUrl()
         return {};
     }
 
-    if ( uploader::isValidUrl( pfc::string8{ trimmed.c_str() } ) )
+    if ( !uploader::isValidUrl( pfc::string8{ trimmed.c_str() } ) )
     {
-        lastLoggedInvalidValue.clear();
-        return trimmed;
+        if ( lastLoggedInvalidValue != trimmed )
+        {
+            lastLoggedInvalidValue = trimmed;
+            FB2K_console_formatter() << DRP_NAME_WITH_VERSION
+                                     << ": Artwork Override URL is invalid and will be treated as unset: "
+                                     << trimmed.c_str();
+        }
+        return {};
     }
 
-    if ( lastLoggedInvalidValue != trimmed )
+    titleformat_object::ptr tf;
+    if ( !titleformat_compiler::get()->compile( tf, trimmed.c_str() ) )
     {
-        lastLoggedInvalidValue = trimmed;
-        FB2K_console_formatter() << DRP_NAME_WITH_VERSION
-                                 << ": Artwork Override URL is invalid and will be treated as unset: "
-                                 << trimmed.c_str();
+        if ( lastLoggedInvalidValue != trimmed )
+        {
+            lastLoggedInvalidValue = trimmed;
+            FB2K_console_formatter() << DRP_NAME_WITH_VERSION
+                                     << ": Artwork Override URL title formatting is invalid and will be treated as unset: "
+                                     << trimmed.c_str();
+        }
+        return {};
     }
 
-    return {};
+    pfc::string8_fast formattedUrl;
+    TitleFormatUrlFilter filter;
+    auto pc = playback_control::get();
+    if ( pc->is_playing() )
+    {
+        metadb_handle_ptr dummyHandle;
+        pc->playback_format_title_ex( dummyHandle, nullptr, formattedUrl, tf, &filter, playback_control::display_level_all );
+    }
+    else if ( metadb.is_valid() )
+    {
+        metadb->format_title( nullptr, formattedUrl, tf, &filter );
+    }
+    else
+    {
+        if ( tf->requires_metadb_info_() )
+        {
+            return {};
+        }
+
+        playable_location_impl emptyLocation;
+        file_info_impl emptyInfo;
+        titleformat_hook_impl_file_info hook( emptyLocation, &emptyInfo );
+        tf->run( &hook, formattedUrl, &filter );
+    }
+
+    const auto formattedTrimmed = TrimWhitespace( formattedUrl.c_str() );
+    if ( !uploader::isValidUrl( pfc::string8{ formattedTrimmed.c_str() } ) )
+    {
+        if ( lastLoggedInvalidValue != trimmed )
+        {
+            lastLoggedInvalidValue = trimmed;
+            FB2K_console_formatter() << DRP_NAME_WITH_VERSION
+                                     << ": Artwork Override URL after title formatting is invalid and will be treated as unset: "
+                                     << formattedTrimmed.c_str();
+        }
+        return {};
+    }
+
+    lastLoggedInvalidValue.clear();
+    return formattedTrimmed;
 }
 
 } // namespace drp::config
